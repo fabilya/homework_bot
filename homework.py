@@ -26,10 +26,8 @@ HOMEWORK_VERDICTS = {
 
 
 def check_tokens() -> bool:
-    """
-    Проверяет доступность переменных окружения,
-    которые необходимы для работы программы.
-    """
+    """Проверяет доступность переменных окружения,
+    которые необходимы для работы программы."""
     token_list = [
         PRACTICUM_TOKEN,
         TELEGRAM_TOKEN,
@@ -83,13 +81,11 @@ def check_response(response):
 
 
 def parse_status(homework):
-    """
-    Извлекает из информации о конкретной домашней работе статус этой
+    """Извлекает из информации о конкретной домашней работе статус этой
     работы. В качестве параметра функция получает только один элемент из
     списка домашних работ. В случае успеха, функция возвращает
     подготовленную для отправки в Telegram строку, содержащую один из
-    вердиктов словаря HOMEWORK_VERDICTS.
-    """
+    вердиктов словаря HOMEWORK_VERDICTS."""
     homework_name = homework['homework_name']
     homework_status = homework['homework_status']
     verdict = HOMEWORK_VERDICTS[homework_status]
