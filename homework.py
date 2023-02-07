@@ -36,7 +36,7 @@ def check_tokens():
 
 
 def send_message(bot, message):
-    """Отправляет сообщение в Telegram чат."""
+    """Отправляет сообщение в Telegram чат"""
     try:
         logging.info(f'Бот отправил сообщение {message}')
         bot.send_message(TELEGRAM_CHAT_ID, message)
@@ -81,7 +81,7 @@ def check_response(response):
 
 def parse_status(homework):
     """Извлекает из информации о конкретной
-    домашней работе статус этой работы.
+    домашней работе статус этой работы
     """
     homework_name = homework['homework_name']
     homework_status = homework['homework_status']
