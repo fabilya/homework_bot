@@ -8,6 +8,8 @@ import requests
 import telegram
 from dotenv import load_dotenv
 
+from exceptions import HTTPRequestError
+
 load_dotenv()
 
 PRACTICUM_TOKEN = os.getenv('PRACTICUM_TOKEN')
@@ -38,7 +40,7 @@ def check_tokens():
 def send_message(bot, message):
     """Отправляет сообщение в Telegram чат."""
     try:
-        logging.info(f'Бот отправил сообщение {message}')
+        logging.debug(f'Бот отправил сообщение {message}')
         bot.send_message(TELEGRAM_CHAT_ID, message)
     except Exception as error:
         logging.error(error)
@@ -47,11 +49,20 @@ def send_message(bot, message):
 def get_api_answer(current_timestamp):
     """Создает и отправляет запрос к эндпоинту."""
     timestamp = current_timestamp or int(time.time())
-    params = {'from_date': timestamp}
+    params = {
+        'from_date': timestamp
+    }
     logging.info(f'Отправка запроса на {ENDPOINT} с параметрами {params}')
-    response = requests.get(ENDPOINT, headers=HEADERS, params=params)
+    try:
+        response = requests.get(
+            url=ENDPOINT,
+            headers=HEADERS,
+            params=params
+        )
+    except Exception as error:
+        logging.error(error)
     if response.status_code != HTTPStatus.OK:
-        raise Exception
+        raise HTTPRequestError(response)
     return response.json()
 
 
@@ -75,27 +86,30 @@ def check_response(response):
     if not isinstance(response.get('homeworks'), list):
         message = 'формат ответа не соответствует.'
         logging.error(message)
-        raise Exception(message)
+        raise TypeError(message)
     return response['homeworks']
 
 
 def parse_status(homework):
     """Извлекает из информации о конкретной домашней работе статус работы."""
-    homework_name = homework['homework_name']
-    homework_status = homework['homework_status']
-    verdict = HOMEWORK_VERDICTS[homework_status]
-    if 'homework_name' not in homework:
-        msg = 'Отсутствует ключ "homework_name" в ответе API'
-        logging.error(msg)
-        raise KeyError(msg)
+    homework_status = homework.get('status')
+    verdict = HOMEWORK_VERDICTS.get(homework_status)
+    if not homework.get('homework_name'):
+        homework_name = 'Undefined name'
+        logging.warning('Отсутствует имя домашней работы.')
+    else:
+        homework_name = homework.get('homework_name')
     if 'status' not in homework:
         msg = 'Отсутствует ключ "status" в ответе API'
         logging.error(msg)
         raise KeyError(msg)
+    if 'homework_name' not in homework:
+        msg = 'Отсутствует ключ "homework_name" в ответе API'
+        raise KeyError(msg)
     if homework_status not in HOMEWORK_VERDICTS:
-        msg = 'Неизвестный статус работы'
-        logging.error(msg)
-        raise Exception(f'{msg}: {homework_status}')
+        message = 'Недокументированный статус домашней работы'
+        logging.error(message)
+        raise KeyError(message)
     return f'Изменился статус проверки работы "{homework_name}". {verdict}'
 
 
