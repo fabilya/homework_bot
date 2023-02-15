@@ -39,9 +39,10 @@ def check_tokens():
 
 def send_message(bot, message):
     """Отправляет сообщение в Telegram чат."""
+    logging.debug(f'Отправляем сообщение {message}')
     try:
-        logging.debug(f'Бот отправил сообщение {message}')
         bot.send_message(TELEGRAM_CHAT_ID, message)
+        logging.debug(f'Бот отправил сообщение {message}')
     except Exception as error:
         logging.error(error)
 
@@ -53,14 +54,11 @@ def get_api_answer(current_timestamp):
         'from_date': timestamp
     }
     logging.info(f'Отправка запроса на {ENDPOINT} с параметрами {params}')
-    try:
-        response = requests.get(
-            url=ENDPOINT,
-            headers=HEADERS,
-            params=params
-        )
-    except Exception as error:
-        logging.error(error)
+    response = requests.get(
+        url=ENDPOINT,
+        headers=HEADERS,
+        params=params
+    )
     if response.status_code != HTTPStatus.OK:
         raise HTTPRequestError(response)
     return response.json()
@@ -68,26 +66,17 @@ def get_api_answer(current_timestamp):
 
 def check_response(response):
     """Проверка полученного ответа от эндпоинта."""
-    if not response:
-        message = 'содержит пустой словарь.'
-        logging.error(message)
-        raise KeyError(message)
-
-    if not isinstance(response, dict):
-        message = 'имеет некорректный тип.'
-        logging.error(message)
-        raise TypeError(message)
-
-    if 'homeworks' not in response:
-        message = 'отсутствие ожидаемых ключей в ответе.'
-        logging.error(message)
-        raise KeyError(message)
-
-    if not isinstance(response.get('homeworks'), list):
-        message = 'формат ответа не соответствует.'
-        logging.error(message)
-        raise TypeError(message)
-    return response['homeworks']
+    if isinstance(response, dict):
+        homeworks = response.get('homeworks')
+        if 'homeworks' not in response:
+            raise TypeError('Нет ключа "homeworks" в response')
+        if 'current_date' not in response:
+            raise TypeError('Нет ключа "current_date" в response')
+        if not isinstance(homeworks, list):
+            raise TypeError('"homeworks" не является списком')
+        return homeworks
+    else:
+        raise TypeError('response не является словарем')
 
 
 def parse_status(homework):
