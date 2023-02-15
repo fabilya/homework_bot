@@ -64,7 +64,7 @@ def get_api_answer(current_timestamp):
         logging.error(error) # Тут надо рейзить ошибку.
     if response.status_code != HTTPStatus.OK:
         raise HTTPRequestError(response)
-    return response.json()11
+    return response.json()
 
 
 def check_response(response):
@@ -72,9 +72,9 @@ def check_response(response):
     if isinstance(response, dict):
         homeworks = response.get('homeworks')
         if 'homeworks' not in response:
-            raise TypeError('Нет ключа "homeworks" в response')
+            raise KeyError('Нет ключа "homeworks" в response')
         if 'current_date' not in response:
-            raise TypeError('Нет ключа "current_date" в response')
+            raise KeyError('Нет ключа "current_date" в response')
         if not isinstance(homeworks, list):
             raise TypeError('"homeworks" не является списком')
         return homeworks
@@ -84,25 +84,37 @@ def check_response(response):
 
 def parse_status(homework):
     """Извлекает из информации о конкретной домашней работе статус работы."""
+    homework_name = homework.get('homework_name')
     homework_status = homework.get('status')
-    verdict = HOMEWORK_VERDICTS.get(homework_status)
-    if not homework.get('homework_name'):
-        homework_name = 'Undefined name'
-        logging.warning('Отсутствует имя домашней работы.')
-    else:
-        homework_name = homework.get('homework_name')
-    if 'status' not in homework:
-        msg = 'Отсутствует ключ "status" в ответе API'
-        logging.error(msg)
-        raise KeyError(msg)
     if 'homework_name' not in homework:
-        msg = 'Отсутствует ключ "homework_name" в ответе API'
-        raise KeyError(msg)
+        raise KeyError('Нет ключа "homework_name" в homework')
+    if 'status' not in homework:
+        raise KeyError('Нет ключа "status" в homework')
     if homework_status not in HOMEWORK_VERDICTS:
-        message = 'Недокументированный статус домашней работы'
-        logging.error(message)
-        raise KeyError(message)
+        raise KeyError('Нет такого статуса')
+    verdict = HOMEWORK_VERDICTS[homework_status]
     return f'Изменился статус проверки работы "{homework_name}". {verdict}'
+
+
+    # homework_status = homework.get('status')
+    # verdict = HOMEWORK_VERDICTS.get(homework_status)
+    # if not homework.get('homework_name'):
+    #     homework_name = 'Undefined name'
+    #     logging.warning('Отсутствует имя домашней работы.')
+    # else:
+    #     homework_name = homework.get('homework_name')
+    # if 'status' not in homework:
+    #     msg = 'Отсутствует ключ "status" в ответе API'
+    #     logging.error(msg)
+    #     raise KeyError(msg)
+    # if 'homework_name' not in homework:
+    #     msg = 'Отсутствует ключ "homework_name" в ответе API'
+    #     raise KeyError(msg)
+    # if homework_status not in HOMEWORK_VERDICTS:
+    #     message = 'Недокументированный статус домашней работы'
+    #     logging.error(message)
+    #     raise KeyError(message)
+    # return f'Изменился статус проверки работы "{homework_name}". {verdict}'
 
 
 def main():
