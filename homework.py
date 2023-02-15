@@ -54,11 +54,14 @@ def get_api_answer(current_timestamp):
         'from_date': timestamp
     }
     logging.info(f'Отправка запроса на {ENDPOINT} с параметрами {params}')
-    response = requests.get(
-        url=ENDPOINT,
-        headers=HEADERS,
-        params=params
-    )
+    try:
+        response = requests.get(
+            url=ENDPOINT,
+            headers=HEADERS,
+            params=params
+        )
+    except Exception as error:
+        logging.error(error) # Тут надо рейзить ошибку.
     if response.status_code != HTTPStatus.OK:
         raise HTTPRequestError(response)
     return response.json()
