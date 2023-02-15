@@ -30,4 +30,4 @@ Cоздать и активировать виртуальное окружен�
 
 Запустить проект:
 
-```python homework.py```
+```python homework.py```# Telegram_bot_Yandex_API_homework
