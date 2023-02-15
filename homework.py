@@ -61,7 +61,7 @@ def get_api_answer(current_timestamp):
             params=params
         )
     except Exception as error:
-        logging.error(error) # Тут надо рейзить ошибку.
+        raise Exception(f'{error}')
     if response.status_code != HTTPStatus.OK:
         raise HTTPRequestError(response)
     return response.json()
@@ -96,32 +96,9 @@ def parse_status(homework):
     return f'Изменился статус проверки работы "{homework_name}". {verdict}'
 
 
-    # homework_status = homework.get('status')
-    # verdict = HOMEWORK_VERDICTS.get(homework_status)
-    # if not homework.get('homework_name'):
-    #     homework_name = 'Undefined name'
-    #     logging.warning('Отсутствует имя домашней работы.')
-    # else:
-    #     homework_name = homework.get('homework_name')
-    # if 'status' not in homework:
-    #     msg = 'Отсутствует ключ "status" в ответе API'
-    #     logging.error(msg)
-    #     raise KeyError(msg)
-    # if 'homework_name' not in homework:
-    #     msg = 'Отсутствует ключ "homework_name" в ответе API'
-    #     raise KeyError(msg)
-    # if homework_status not in HOMEWORK_VERDICTS:
-    #     message = 'Недокументированный статус домашней работы'
-    #     logging.error(message)
-    #     raise KeyError(message)
-    # return f'Изменился статус проверки работы "{homework_name}". {verdict}'
-
-
 def main():
     """Основная логика работы бота."""
-    last_send = {
-        'error': None,
-    }
+    last_status = None
     if not check_tokens():
         logging.critical('Отсутствуют одна или несколько переменных окружения')
         exit()
@@ -131,22 +108,20 @@ def main():
         try:
             response = get_api_answer(current_timestamp)
             homeworks = check_response(response)
-            if len(homeworks) == 0:
-                logging.debug('Ответ API пуст: нет домашних работ.')
-                break
-            for homework in homeworks:
-                message = parse_status(homework)
-                if last_send.get(homework['homework_name']) != message:
+            if homeworks:
+                message = parse_status(homeworks[0])
+                if message != last_status:
                     send_message(bot, message)
-                    last_send[homework['homework_name']] = message
-            current_timestamp = response.get('current_date')
+                    last_status = message
+            else:
+                logging.debug('Ответ API пуст: нет домашних работ.')
         except Exception as error:
             message = f'Сбой в работе программы: {error}'
-            if last_send['error'] != message:
+            if last_status != message:
                 send_message(bot, message)
-                last_send['error'] = message
+                last_status = message
         else:
-            last_send['error'] = None
+            last_status = None
         finally:
             time.sleep(RETRY_PERIOD)
 
