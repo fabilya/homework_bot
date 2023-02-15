@@ -64,7 +64,7 @@ def get_api_answer(current_timestamp):
         logging.error(error) # Тут надо рейзить ошибку.
     if response.status_code != HTTPStatus.OK:
         raise HTTPRequestError(response)
-    return response.json()
+    return response.json()11
 
 
 def check_response(response):
