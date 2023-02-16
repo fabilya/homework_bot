@@ -69,17 +69,18 @@ def get_api_answer(current_timestamp):
 
 def check_response(response):
     """Проверка полученного ответа от эндпоинта."""
-    if isinstance(response, dict):
-        homeworks = response.get('homeworks')
-        if 'homeworks' not in response:
-            raise KeyError('Нет ключа "homeworks" в response')
-        if 'current_date' not in response:
-            raise KeyError('Нет ключа "current_date" в response')
-        if not isinstance(homeworks, list):
-            raise TypeError('"homeworks" не является списком')
-        return homeworks
-    else:
+    if not isinstance(response, dict):
         raise TypeError('response не является словарем')
+    homeworks = response.get('homeworks')
+    if 'homeworks' not in response:
+        raise KeyError('Нет ключа "homeworks" в response')
+    if 'current_date' not in response:
+        raise KeyError('Нет ключа "current_date" в response')
+    if not isinstance(homeworks, list):
+        raise TypeError('"homeworks" не является списком')
+    return homeworks
+
+
 
 
 def parse_status(homework):
